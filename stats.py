@@ -137,15 +137,17 @@ class formulas:
         nodeList = [] 
         adjList = collections.defaultdict()
         for idx in range(self.n):
-            delta = node(   self.df.iloc[idx][x], 
-                            self.df.iloc[idx][y],
+            dx = self.df.iloc[idx][x]
+            dy = self.df.iloc[idx][y]
+            delta = node(   dx, 
+                            dy,
                             idx,
                             self.df,
                             names,
                             label         
                         )
             nodeList.append(delta)
-            adjList[idx] = delta
+            adjList[(dx,dy)] = delta
         
         self.nodeList = nodeList
         self.adjList = adjList
@@ -233,7 +235,7 @@ class node(formulas):
         self.y = y 
         self.idx = idx
         self.names = names
-        self.label = label
+        self.label = df.iloc[idx][label]
         # invoking the __init__ of the parent class
         formulas.__init__(self, df)
         
@@ -244,15 +246,21 @@ class node(formulas):
 
 
 
-# df = pd.read_csv('stats_py_ai_ml/data/nyc.csv')
-# jedi = formulas(df)
-# jedi.df['County'] = jedi.vector_to_ints('County')
+df = pd.read_csv('stats_py_ai_ml/data/nyc.csv')
+jedi = formulas(df)
+testNode = node(24,29,0,df,['TestNode'],0)
+#jedi.df['County'] = jedi.vector_to_ints('County')
 
+jedi.init_knn(5,['White','Black'])
+jedi.insert_knn(testNode)
+res = jedi.predict([testNode])
+for item in res:
+   
+    _,x_y = item
+    edge = jedi.adjList[x_y]
+    print(edge.x, edge.y, edge.label)
+    print('')
 
-# testNode = node(24,29,None,df,['TestNode'],'Brooklyn')
-# jedi.init_knn(5,['White','Black'])
-# jedi.insert_knn(testNode)
-# jedi.predict([testNode])
 # print(jedi.distanceVector)
 
 #T1
