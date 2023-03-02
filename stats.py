@@ -121,7 +121,6 @@ class formulas:
 
     def dist(self,p1,p2):
         res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
-        print(abs(res))
         return round(np.sqrt(res),4)
         
     def init_knn(self,clusterSize,vals):
@@ -245,16 +244,16 @@ class node(formulas):
 
 
 
-df = pd.read_csv('stats_py_ai_ml/data/nyc.csv')
-jedi = formulas(df)
-jedi.df['County'] = jedi.vector_to_ints('County')
+# df = pd.read_csv('stats_py_ai_ml/data/nyc.csv')
+# jedi = formulas(df)
+# jedi.df['County'] = jedi.vector_to_ints('County')
 
 
-testNode = node(24,29,None,df,['TestNode'],'Brooklyn')
-jedi.init_knn(5,['White','Black'])
-jedi.insert_knn(testNode)
-jedi.predict([testNode])
-print(jedi.distanceVector)
+# testNode = node(24,29,None,df,['TestNode'],'Brooklyn')
+# jedi.init_knn(5,['White','Black'])
+# jedi.insert_knn(testNode)
+# jedi.predict([testNode])
+# print(jedi.distanceVector)
 
 #T1
 # jedi.set_x_y('Poverty','ChildPoverty')
