@@ -132,7 +132,7 @@ class formulas:
         self.create_node_list(vals)
         self.create_graph()
         
-    def create_node_list(self,vals):
+    def create_node_list(self,vals,label='County'):
         x,y = vals[0], vals[1]
         names = [x,y]
         nodeList = [] 
@@ -142,7 +142,8 @@ class formulas:
                             self.df.iloc[idx][y],
                             idx,
                             self.df,
-                            names         
+                            names,
+                            label         
                         )
             nodeList.append(delta)
             adjList[idx] = delta
@@ -206,20 +207,37 @@ class formulas:
         
         return delta[0:knnSize]
 
+    def vector_to_ints(self,col):
+        v = self.df[col]
+        counts = collections.Counter(v)
+        unique_list = list(counts.keys())
+        range_of_values = len(unique_list)
+        delta_vector = collections.defaultdict()
+        i = 0
+
+        for x in unique_list:
+            delta_vector[x] = i
+            i+=1
+
+        for idx, val in enumerate(v):
+            v[idx] = delta_vector[x] 
+        
+        return v
 
 
         
 
 class node(formulas):
     
-    def __init__(self,x,y,idx,df,names) -> None:
+    def __init__(self,x,y,idx,df,names,label) -> None:
         self.x = x 
         self.y = y 
         self.idx = idx
         self.names = names
-        self.label = None
+        self.label = label
         # invoking the __init__ of the parent class
         formulas.__init__(self, df)
+        
         
         
 
@@ -227,13 +245,16 @@ class node(formulas):
 
 
 
-# df = pd.read_csv('stats_py_ai_ml/data/nyc.csv')
-# jedi = formulas(df)
-# testNode = node(24,29,None,df,['TestNode'])
-# jedi.init_knn(5,['White','Black'])
-# jedi.insert_knn(testNode)
-# jedi.predict([testNode])
-# print(jedi.distanceVector)
+df = pd.read_csv('stats_py_ai_ml/data/nyc.csv')
+jedi = formulas(df)
+jedi.df['County'] = jedi.vector_to_ints('County')
+
+
+testNode = node(24,29,None,df,['TestNode'],'Brooklyn')
+jedi.init_knn(5,['White','Black'])
+jedi.insert_knn(testNode)
+jedi.predict([testNode])
+print(jedi.distanceVector)
 
 #T1
 # jedi.set_x_y('Poverty','ChildPoverty')
