@@ -184,6 +184,23 @@ class formulas:
         self.delta = delta
         return delta
 
+    def vector_to_ints(self,col):
+        v = self.df[col]
+        counts = collections.Counter(v)
+        unique_list = list(counts.keys())
+        range_of_values = len(unique_list)
+        delta_vector = collections.defaultdict()
+        i = 0
+
+        for x in unique_list:
+            delta_vector[x] = i
+            i+=1
+
+        for idx, val in enumerate(v):
+            v[idx] = delta_vector[x] 
+        
+        return v
+    
     def insert_knn(self, node, normalized=False):
         if not normalized:
             node.label = 'Red'
@@ -208,22 +225,42 @@ class formulas:
         
         return delta[0:knnSize]
 
-    def vector_to_ints(self,col):
-        v = self.df[col]
-        counts = collections.Counter(v)
-        unique_list = list(counts.keys())
-        range_of_values = len(unique_list)
-        delta_vector = collections.defaultdict()
-        i = 0
+    def linear_regression(self,x,y):
+        slope = self.get_slope(x,y)
+        intercept = self.get_intercept(x,y)
 
-        for x in unique_list:
-            delta_vector[x] = i
-            i+=1
-
-        for idx, val in enumerate(v):
-            v[idx] = delta_vector[x] 
-        
+    def get_variance(self,v1):
+        x_mu = np.sum(v1)/len(v1)
+        v = np.sum([(x - x_mu)**2 for x in v1]) / len(v1)    
         return v
+    
+    def get_coverance(self,v1,v2):
+        n = len(v1)
+        x_mu = np.mean(v1)
+        y_mu = np.mean(v2)
+        coverance = np.sum([(x - x_mu)*(y - y_mu) for x,y in zip(v1,v2)]) / n
+        return coverance
+    
+    def get_slope(self,v1,v2):
+        slope = self.get_coverance(v1,v2) / self.get_variance(v1)
+        self.slope = slope
+        return slope
+
+    def get_intercept(self,v1,v2):
+        n = len(v1)
+        x_sum = np.sum(v1)
+        y_sum = np.sum(v2)
+        xs_sum = np.sum([x**2 for x in v1])
+        xy_sum = np.sum([x*y for x,y in zip(v1,v2)])
+        
+
+        top_term = (y_sum*xs_sum) - (x_sum * xy_sum)
+        btm_term = (n*xs_sum) - (x_sum**2)
+        intercept = top_term/btm_term
+        self.intercept = intercept
+        return intercept
+        
+
 
 
         
@@ -246,20 +283,21 @@ class node(formulas):
 
 
 
-df = pd.read_csv('stats_py_ai_ml/data/nyc.csv')
-jedi = formulas(df)
-testNode = node(24,29,0,df,['TestNode'],0)
-#jedi.df['County'] = jedi.vector_to_ints('County')
+# df = pd.read_csv('stats_py_ai_ml/data/nyc.csv')
+# jedi = formulas(df)
+# #jedi.df['County'] = jedi.vector_to_ints('County')
 
-jedi.init_knn(5,['White','Black'])
-jedi.insert_knn(testNode)
-res = jedi.predict([testNode])
-for item in res:
+# jedi.init_knn(5,['Black','White'])
+# testNode = node(0,100,0,df,['TestNode'],0)
+
+# jedi.insert_knn(testNode)
+# res = jedi.predict([testNode])
+# for item in res:
    
-    _,x_y = item
-    edge = jedi.adjList[x_y]
-    print(edge.x, edge.y, edge.label)
-    print('')
+#     _,x_y = item
+#     edge = jedi.adjList[x_y]
+#     print(edge.x, edge.y, edge.label)
+#     print('')
 
 # print(jedi.distanceVector)
 
