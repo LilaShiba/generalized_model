@@ -33,7 +33,7 @@ class formulas:
         self.createX(x)
         self.createY(y)
     
-    def corr(self,x,y):
+    def get_corr(self,x,y):
         self.set_x_y(x,y)
         top_term = 0
         btm_term_x = 0
@@ -225,9 +225,17 @@ class formulas:
         
         return delta[0:knnSize]
 
-    def linear_regression(self,x,y):
+    def linear_regression(self,x,y,p):
         slope = self.get_slope(x,y)
         intercept = self.get_intercept(x,y)
+        prediction = intercept + (slope * p)
+        plt.scatter(x,y)
+        plt.plot(prediction,p,'ro')
+        plt.show()
+        self.prediction = prediction
+        return self.prediction
+       
+
 
     def get_variance(self,v1):
         x_mu = np.sum(v1)/len(v1)
