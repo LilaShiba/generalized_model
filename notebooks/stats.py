@@ -235,8 +235,6 @@ class formulas:
         self.prediction = prediction
         return self.prediction
        
-
-
     def get_variance(self,v1):
         x_mu = np.sum(v1)/len(v1)
         v = np.sum([(x - x_mu)**2 for x in v1]) / len(v1)    
@@ -254,19 +252,20 @@ class formulas:
         self.slope = slope
         return slope
 
-    def get_intercept(self,v1,v2):
-        n = len(v1)
-        x_sum = np.sum(v1)
-        y_sum = np.sum(v2)
-        xs_sum = np.sum([x**2 for x in v1])
-        xy_sum = np.sum([x*y for x,y in zip(v1,v2)])
-        
-
-        top_term = (y_sum*xs_sum) - (x_sum * xy_sum)
-        btm_term = (n*xs_sum) - (x_sum**2)
-        intercept = top_term/btm_term
+    def get_intercept(self,v1,v2):        
+        intercept = np.mean(v2) - self.slope * np.mean(v1)
         self.intercept = intercept
         return intercept
+ 
+    def create_corr_vectors(self,n,corr):
+        # Generate the first random vector from a normal distribution
+        x = np.random.normal(loc=0, scale=1, size=n)
+        # Generate the second random vector from a normal distribution
+        y = np.random.normal(loc=0, scale=1, size=n)
+        # Create a third vector with the desired correlation
+        z = (y + corr) * np.std(x) * (x - np.mean(x))
+        np.corrcoef(x,z)
+        return x,z
         
 
 
