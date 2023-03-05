@@ -225,15 +225,42 @@ class formulas:
         
         return delta[0:knnSize]
 
-    def linear_regression(self,x,y,p):
-        slope = self.get_slope(x,y)
-        intercept = self.get_intercept(x,y)
-        prediction = intercept + (slope * p)
+    def linear_regression(self,x,y,x_predict_y):
+        n = len(x)
+        x_mu = np.mean(x)
+        y_mu = np.mean(y)
+        top_term = 0
+        btm_term = 0
+
+        for i in range(n):
+            top_term += (x[i] - x_mu) * (y[i] - y_mu)
+            btm_term += (x[i] - x_mu)**2
+
+        m = top_term/btm_term
+        b = y_mu - (m * x_mu)
+
+        
+        print (f'm = {m} \nb = {b}')
+
+
+        max_x = np.max(x) + 10
+        min_x = np.min(y) - 10
+        x_delta = np.linspace (min_x, max_x, 10)
+
+        y_delta = b + m * x_delta
+
         plt.scatter(x,y)
-        plt.plot(prediction,p,'ro')
+        plt.plot(x_delta,y_delta,'ro')
         plt.show()
-        self.prediction = prediction
-        return self.prediction
+        return y_delta
+
+
+        # slope = self.get_slope(x,y)
+        # intercept = self.get_intercept(x,y)
+        # prediction = intercept + (slope * p)
+    
+        # self.prediction = prediction
+        # return self.prediction
        
     def get_variance(self,v1):
         x_mu = np.sum(v1)/len(v1)
@@ -244,7 +271,7 @@ class formulas:
         n = len(v1)
         x_mu = np.mean(v1)
         y_mu = np.mean(v2)
-        coverance = np.sum([(x - x_mu)*(y - y_mu) for x,y in zip(v1,v2)]) / n
+        coverance = np.sum([(x - x_mu)*(y - y_mu) for x,y in zip(v1,v2)]) / n-1
         return coverance
     
     def get_slope(self,v1,v2):
