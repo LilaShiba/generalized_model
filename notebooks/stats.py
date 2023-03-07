@@ -14,9 +14,11 @@ class formulas:
         self.cols = list(self.df.columns.values)
         self.graph = collections.defaultdict(list)
         self.probVector = False
+        self.b = 0
+        self.error_rate = 0
+        self.weights = np.zeros(self.n)
     
     def setCol(self,col):
-
         self.col = self.df[col]
 
     def createX(self, colName):
@@ -123,22 +125,22 @@ class formulas:
         res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
         return round(np.sqrt(res),4)
         
-    def init_knn(self,clusterSize,vals):
+    def init_knn(self,labels):
         '''
         vals must be x,y only
         TODO: create dynamic vals ds
         '''
-        self.create_node_list(vals)
+        self.create_node_list(labels)
         self.create_graph()
         
-    def create_node_list(self,vals,label='County'):
-        x,y = vals[0], vals[1]
+    def create_node_list(self,label='County'):
+        x,y = self.x, self.y
         names = [x,y]
         nodeList = [] 
         adjList = collections.defaultdict()
         for idx in range(self.n):
-            dx = self.df.iloc[idx][x]
-            dy = self.df.iloc[idx][y]
+            dx = self.x.iloc[idx]
+            dy = self.y.iloc[idx]
             delta = node(   dx, 
                             dy,
                             idx,
@@ -226,16 +228,18 @@ class formulas:
         
         return delta[0:knnSize]
 
-    def linear_regression(self,x,y,x_predict_y):
-        n = len(x)
-        x_mu = np.mean(x)
-        y_mu = np.mean(y)
+    def linear_regression(self):
+        n = len(self.x)
+        x_mu = self.x_mu
+        y_mu = self.y_mu
+        
+
         top_term = 0
         btm_term = 0
 
         for i in range(n):
-            top_term += (x[i] - x_mu) * (y[i] - y_mu)
-            btm_term += (x[i] - x_mu)**2
+            top_term += (self.x.iloc[i] - x_mu) * (self.y.iloc[i] - y_mu)
+            btm_term += (self.x.iloc[i] - x_mu)**2
 
         m = top_term/btm_term
         b = y_mu - (m * x_mu)
@@ -244,28 +248,20 @@ class formulas:
         print (f'm = {m} \nb = {b}')
 
 
-        max_x = np.max(x) + 10
-        min_x = np.min(y) - 10
+        max_x = np.max(self.x) + 10
+        min_x = np.min(self.y) - 10
         x_delta = np.linspace (min_x, max_x, 10)
 
         y_delta = b + m * x_delta
 
-        plt.scatter(x,y)
+        plt.scatter(self.x,self.y)
         plt.plot(x_delta,y_delta,'ro')
         plt.show()
         return y_delta
-
-
-        # slope = self.get_slope(x,y)
-        # intercept = self.get_intercept(x,y)
-        # prediction = intercept + (slope * p)
-    
-        # self.prediction = prediction
-        # return self.prediction
        
     def get_variance(self,v1):
         x_mu = np.sum(v1)/len(v1)
-        v = np.sum([(x - x_mu)**2 for x in v1]) / len(v1)    
+        v = np.sum([(x - self.x_mu)**2 for x in v1]) / len(v1)    
         return v
     
     def get_coverance(self,v1,v2):
@@ -295,12 +291,44 @@ class formulas:
         np.corrcoef(x,z)
         return x,z
     
-    def sigmoid(self,x):
-        sig = 1/ 1 + np.exp(-(x))
-        self.sig = sig
-        return sig 
+    def logistic_regression(self,lr=0.0001):
+        b = 0
+        dw = 0
+        dw = 0
+        res = []
+        for y in self.y.tolist():
+            linear_model = np.dot(self.x, self.weights) + self.error_rate
+            y_prediction = self.sigmoid(linear_model)
+             # Update weights with gradient
+            dw = (1 / self.n) * np.dot(self.x.T, (y_prediction) - y)
+            db = (1 / self.n) * np.sum(y_prediction - y)
+            self.weights -= dw * lr
+            self.b -= db * lr
+            res.append(y_prediction)
+            
+        return res
         
+    def sigmoid(self,theta):
+        '''
+        m = error rate
+        b = bias
+        np.(X,weights)+error rate
+        '''
+        y_prediction = 1/ 1 + np.exp(-(theta))
+        return y_prediction
+        
+    
+    def update_weights_bias(self,m,b,learning_rate):
+       
 
+        for i in range(self.n):
+            m_deriv += -2*self.x.iloc[i]*(self.y[i] -(m*self.x.iloc[i] + b))
+            b_deriv += -2*(self.y.iloc[i] -(m*self.x.iloc[i] + b))
+        
+        m -= (m_deriv / self.n) * learning_rate
+        b -= (b_deriv / self.n) * learning_rate
+
+        return m, b
 
 
         
