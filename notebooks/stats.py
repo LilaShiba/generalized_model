@@ -151,6 +151,7 @@ class formulas:
         
         self.nodeList = nodeList
         self.adjList = adjList
+        self.df['node'] = nodeList
     
     def create_graph(self):
         if not self.nodeList:
@@ -206,7 +207,7 @@ class formulas:
             node.label = 'Red'
             self.graph[(node.x,node.y)].append(node)
     
-    def predict(self, vector, knnSize=5):
+    def knn_predict(self, vector, knnSize=5):
         '''
             vector 1D Node array
         '''
@@ -293,6 +294,11 @@ class formulas:
         z = (y + corr) * np.std(x) * (x - np.mean(x))
         np.corrcoef(x,z)
         return x,z
+    
+    def sigmoid(self,x):
+        sig = 1/ 1 + np.exp(-(x))
+        self.sig = sig
+        return sig 
         
 
 
