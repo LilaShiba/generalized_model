@@ -20,6 +20,7 @@ class formulas:
         self.error_rate = 0
         self.weights = np.zeros(self.n)
     
+    # Set X,Y
     def setCol(self,col):
         self.col = self.df[col]
 
@@ -37,6 +38,7 @@ class formulas:
         self.createX(x)
         self.createY(y)
     
+    # Math
     def get_corr(self,x,y):
         self.set_x_y(x,y)
         top_term = 0
@@ -124,10 +126,168 @@ class formulas:
         self.entropy_res[col] = entropy
         self.prob_res[col] = p
 
+    def get_variance(self,v1):
+        x_mu = np.sum(v1)/len(v1)
+        v = np.sum([(x - self.x_mu)**2 for x in v1]) / len(v1)    
+        return v
+    
+    def get_coverance(self,v1,v2):
+        n = len(v1)
+        x_mu = np.mean(v1)
+        y_mu = np.mean(v2)
+        coverance = np.sum([(x - x_mu)*(y - y_mu) for x,y in zip(v1,v2)]) / n-1
+        return coverance
+    
+    def get_slope(self,v1,v2):
+        slope = self.get_coverance(v1,v2) / self.get_variance(v1)
+        self.slope = slope
+        return slope
+    
+    def sigmoid(self,theta):
+        '''
+        m = error rate
+        b = bias
+        np.(X,weights)+error rate
+        '''
+        return 1/ (1 + np.exp(-theta))    
+    
     def dist(self,p1,p2):
         res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
         return round(np.sqrt(res),4)
+    
+    def norm_vector_2D(self, x,y):
+        x = self.norm_vector(x)
+        y = self.norm_vector(y)
+        return x,y
+
+    def norm_vector(self, vector):
+        v_min = np.min(vector)
+        v_max = np.max(vector)
+        v_max_min = v_max - v_min
+        delta = [(x-v_min)/(v_max_min) for x in vector]
+        self.delta = delta
+        return delta
+
+    # AI Algorithms
+    def linear_regression(self):
+         # y_hat = w.X + b
+        n = len(self.x)
+        x_mu = self.x_mu
+        y_mu = self.y_mu
         
+
+        top_term = 0
+        btm_term = 0
+
+        for i in range(n):
+            top_term += (self.x.iloc[i] - x_mu) * (self.y.iloc[i] - y_mu)
+            btm_term += (self.x.iloc[i] - x_mu)**2
+
+        m = top_term/btm_term
+        b = y_mu - (m * x_mu)
+
+        
+        print (f'm = {m} \nb = {b}')
+
+
+        max_x = np.max(self.x) + 10
+        min_x = np.min(self.y) - 10
+        x_delta = np.linspace (min_x, max_x, 10)
+
+        y_delta = b + m * x_delta
+
+        plt.scatter(self.x,self.y)
+        plt.plot(x_delta,y_delta,'ro')
+        plt.show()
+        return y_delta
+
+    def logistic_regression(self,lr=0.0001):
+        # y_hat = sigmoid(w.X + b)
+        b = 0
+        dw = 0
+        dw = 0
+        res = []
+        for y in self.y.tolist():
+            linear_model = np.dot(self.x, self.weights) + self.error_rate
+            y_prediction = self.sigmoid(linear_model)
+             # Update weights with gradient
+            dw = (1 / self.n) * np.dot(self.x.T, (y_prediction) - y)
+            db = (1 / self.n) * np.sum(y_prediction - y)
+            self.weights -= dw * lr
+            self.b -= db * lr
+            res.append(y_prediction)
+            
+        return res
+        
+    def insert_knn(self, node, normalized=False):
+        node.label = 'Red'
+        self.graph[(node.x,node.y)].append(node)
+    
+    def knn_predict(self, vector, knnSize=5):
+        '''
+            vector 1D Node array
+        '''
+        self.distanceVector = collections.defaultdict()
+        cord_vector = list(self.graph.values())
+        # update graph
+        while vector:
+            p1 = vector.pop()
+            for p2 in self.nodeList:
+                self.distanceVector[(p2.x,p2.y)] = self.dist(p1,p2)
+        # TODO: optimize lookup with headpq
+        delta_values = list(self.distanceVector.values())
+        delta_keys = list(self.distanceVector.keys())
+        delta = sorted(list(zip(delta_values,delta_keys)),
+                        key= lambda x:x[0], reverse=False)
+        
+        return delta[0:knnSize]
+    
+    # AI Helpers
+       
+        intercept = np.mean(v2) - self.slope * np.mean(v1)
+        self.intercept = intercept
+        return intercept
+ 
+   
+    # AI Helpers
+    def create_corr_vectors(self,n,corr):
+        # Generate the first random vector from a normal distribution
+        x = np.random.normal(loc=0, scale=1, size=n)
+        # Generate the second random vector from a normal distribution
+        y = np.random.normal(loc=0, scale=1, size=n)
+        # Create a third vector with the desired correlation
+        z = (y + corr) * np.std(x) * (x - np.mean(x))
+        np.corrcoef(x,z)
+        return x,z
+    
+    def update_weights_bias(self,m,b,learning_rate):
+
+        for i in range(self.n):
+            m_deriv += -2*self.x.iloc[i]*(self.y[i] -(m*self.x.iloc[i] + b))
+            b_deriv += -2*(self.y.iloc[i] -(m*self.x.iloc[i] + b))
+        
+        m -= (m_deriv / self.n) * learning_rate
+        b -= (b_deriv / self.n) * learning_rate
+
+        return m, b
+
+    def prepare_log_reg(self, dataToProcess=False):
+
+        if not dataToProcess:
+            X, labels = make_classification(n_features=2, n_redundant=0, 
+                                n_informative=2, random_state=1, 
+                                n_clusters_per_class=1)
+        else:
+            X, labels = dataToProcess
+
+        shapes = ['x','^','.']    
+        nodeList = [point(X[x][0], X[x][1], labels[x], self.df) for x in range(len(X))]
+        x = [n.x for n in nodeList]
+        y = [n.y for n in nodeList]
+        log_df = pd.DataFrame({'x': x, 'y': y, 'label': labels})
+        self.log_df = log_df 
+        return x,y,labels
+    
     def init_knn(self,labels):
         '''
         vals must be x,y only
@@ -177,20 +337,7 @@ class formulas:
         self.graph = graph
         return graph
         
-    def norm_vector_2D(self, x,y):
-        x = self.norm_vector(x)
-        y = self.norm_vector(y)
-        return x,y
 
-    def norm_vector(self, vector):
-        v_min = np.min(vector)
-        v_max = np.max(vector)
-        v_max_min = v_max - v_min
-        delta = [(x-v_min)/(v_max_min) for x in vector]
-        self.delta = delta
-        return delta
-
-    def vector_to_ints(self,col):
         v = self.df[col]
         counts = collections.Counter(v)
         unique_list = list(counts.keys())
@@ -206,151 +353,9 @@ class formulas:
             v[idx] = delta_vector[x] 
         
         return v
-    
-    def insert_knn(self, node, normalized=False):
-        node.label = 'Red'
-        self.graph[(node.x,node.y)].append(node)
-    
-    def knn_predict(self, vector, knnSize=5):
-        '''
-            vector 1D Node array
-        '''
-        self.distanceVector = collections.defaultdict()
-        cord_vector = list(self.graph.values())
-        # update graph
-        while vector:
-            p1 = vector.pop()
-            for p2 in self.nodeList:
-                self.distanceVector[(p2.x,p2.y)] = self.dist(p1,p2)
-        # TODO: optimize lookup with headpq
-        delta_values = list(self.distanceVector.values())
-        delta_keys = list(self.distanceVector.keys())
-        delta = sorted(list(zip(delta_values,delta_keys)),
-                        key= lambda x:x[0], reverse=False)
-        
-        return delta[0:knnSize]
-
-    def linear_regression(self):
-        # y_hat = w.X + b
-        n = len(self.x)
-        x_mu = self.x_mu
-        y_mu = self.y_mu
-        
-
-        top_term = 0
-        btm_term = 0
-
-        for i in range(n):
-            top_term += (self.x.iloc[i] - x_mu) * (self.y.iloc[i] - y_mu)
-            btm_term += (self.x.iloc[i] - x_mu)**2
-
-        m = top_term/btm_term
-        b = y_mu - (m * x_mu)
-
-        
-        print (f'm = {m} \nb = {b}')
 
 
-        max_x = np.max(self.x) + 10
-        min_x = np.min(self.y) - 10
-        x_delta = np.linspace (min_x, max_x, 10)
-
-        y_delta = b + m * x_delta
-
-        plt.scatter(self.x,self.y)
-        plt.plot(x_delta,y_delta,'ro')
-        plt.show()
-        return y_delta
-       
-    def get_variance(self,v1):
-        x_mu = np.sum(v1)/len(v1)
-        v = np.sum([(x - self.x_mu)**2 for x in v1]) / len(v1)    
-        return v
-    
-    def get_coverance(self,v1,v2):
-        n = len(v1)
-        x_mu = np.mean(v1)
-        y_mu = np.mean(v2)
-        coverance = np.sum([(x - x_mu)*(y - y_mu) for x,y in zip(v1,v2)]) / n-1
-        return coverance
-    
-    def get_slope(self,v1,v2):
-        slope = self.get_coverance(v1,v2) / self.get_variance(v1)
-        self.slope = slope
-        return slope
-
-    def get_intercept(self,v1,v2):        
-        intercept = np.mean(v2) - self.slope * np.mean(v1)
-        self.intercept = intercept
-        return intercept
- 
-    def create_corr_vectors(self,n,corr):
-        # Generate the first random vector from a normal distribution
-        x = np.random.normal(loc=0, scale=1, size=n)
-        # Generate the second random vector from a normal distribution
-        y = np.random.normal(loc=0, scale=1, size=n)
-        # Create a third vector with the desired correlation
-        z = (y + corr) * np.std(x) * (x - np.mean(x))
-        np.corrcoef(x,z)
-        return x,z
-    
-    def logistic_regression(self,lr=0.0001):
-        # y_hat = sigmoid(w.X + b)
-        b = 0
-        dw = 0
-        dw = 0
-        res = []
-        for y in self.y.tolist():
-            linear_model = np.dot(self.x, self.weights) + self.error_rate
-            y_prediction = self.sigmoid(linear_model)
-             # Update weights with gradient
-            dw = (1 / self.n) * np.dot(self.x.T, (y_prediction) - y)
-            db = (1 / self.n) * np.sum(y_prediction - y)
-            self.weights -= dw * lr
-            self.b -= db * lr
-            res.append(y_prediction)
-            
-        return res
-        
-    def sigmoid(self,theta):
-        '''
-        m = error rate
-        b = bias
-        np.(X,weights)+error rate
-        '''
-        return 1/ (1 + np.exp(-theta))
-        
-    
-    def update_weights_bias(self,m,b,learning_rate):
-
-        for i in range(self.n):
-            m_deriv += -2*self.x.iloc[i]*(self.y[i] -(m*self.x.iloc[i] + b))
-            b_deriv += -2*(self.y.iloc[i] -(m*self.x.iloc[i] + b))
-        
-        m -= (m_deriv / self.n) * learning_rate
-        b -= (b_deriv / self.n) * learning_rate
-
-        return m, b
-
-    def prepare_log_reg(self, dataToProcess=False):
-
-        if not dataToProcess:
-            X, labels = make_classification(n_features=2, n_redundant=0, 
-                                n_informative=2, random_state=1, 
-                                n_clusters_per_class=1)
-        else:
-            X, labels = dataToProcess
-
-        shapes = ['x','^','.']    
-        nodeList = [point(X[x][0], X[x][1], labels[x], self.df) for x in range(len(X))]
-        x = [n.x for n in nodeList]
-        y = [n.y for n in nodeList]
-        log_df = pd.DataFrame({'x': x, 'y': y, 'label': labels})
-        self.log_df = log_df 
-
-
-
-        
+# Data Processing Children        
 
 class node(formulas):
     
