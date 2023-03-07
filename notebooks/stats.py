@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import collections 
 import matplotlib.pyplot as plt
+from sklearn.datasets import make_classification
 
 class formulas:
     # Dataframe management
@@ -14,6 +15,7 @@ class formulas:
         self.cols = list(self.df.columns.values)
         self.graph = collections.defaultdict(list)
         self.probVector = False
+        self.log_df = None
         self.b = 0
         self.error_rate = 0
         self.weights = np.zeros(self.n)
@@ -58,8 +60,9 @@ class formulas:
         print(self.corr)
         return self.corr
 
-    def pdf(self,col):
+    def pdf(self,col,round_by=2):
         sorted_data = sorted(self.df[col],reverse=False)
+        sorted_data = [round(x,round_by) for x in sorted_data]
         n = len(sorted_data)
         unique_sorted_data = np.unique(sorted_data)
         counter = collections.Counter(sorted_data)
@@ -205,9 +208,8 @@ class formulas:
         return v
     
     def insert_knn(self, node, normalized=False):
-        if not normalized:
-            node.label = 'Red'
-            self.graph[(node.x,node.y)].append(node)
+        node.label = 'Red'
+        self.graph[(node.x,node.y)].append(node)
     
     def knn_predict(self, vector, knnSize=5):
         '''
@@ -229,6 +231,7 @@ class formulas:
         return delta[0:knnSize]
 
     def linear_regression(self):
+        # y_hat = w.X + b
         n = len(self.x)
         x_mu = self.x_mu
         y_mu = self.y_mu
@@ -292,6 +295,7 @@ class formulas:
         return x,z
     
     def logistic_regression(self,lr=0.0001):
+        # y_hat = sigmoid(w.X + b)
         b = 0
         dw = 0
         dw = 0
@@ -314,12 +318,10 @@ class formulas:
         b = bias
         np.(X,weights)+error rate
         '''
-        y_prediction = 1/ 1 + np.exp(-(theta))
-        return y_prediction
+        return 1/ (1 + np.exp(-theta))
         
     
     def update_weights_bias(self,m,b,learning_rate):
-       
 
         for i in range(self.n):
             m_deriv += -2*self.x.iloc[i]*(self.y[i] -(m*self.x.iloc[i] + b))
@@ -329,6 +331,23 @@ class formulas:
         b -= (b_deriv / self.n) * learning_rate
 
         return m, b
+
+    def prepare_log_reg(self, dataToProcess=False):
+
+        if not dataToProcess:
+            X, labels = make_classification(n_features=2, n_redundant=0, 
+                                n_informative=2, random_state=1, 
+                                n_clusters_per_class=1)
+        else:
+            X, labels = dataToProcess
+
+        shapes = ['x','^','.']    
+        nodeList = [point(X[x][0], X[x][1], labels[x], self.df) for x in range(len(X))]
+        x = [n.x for n in nodeList]
+        y = [n.y for n in nodeList]
+        log_df = pd.DataFrame({'x': x, 'y': y, 'label': labels})
+        self.log_df = log_df 
+
 
 
         
@@ -343,6 +362,16 @@ class node(formulas):
         self.label = df.iloc[idx][label]
         # invoking the __init__ of the parent class
         formulas.__init__(self, df)
+
+class point(formulas):
+    
+    def __init__(self,x,y,label,df) -> None:
+        self.x = x 
+        self.y = y 
+        self.label = label
+        # invoking the __init__ of the parent class
+        formulas.__init__(self, df)
+        
         
         
         
