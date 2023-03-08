@@ -19,6 +19,7 @@ class formulas:
         self.b = 0
         self.error_rate = 0
         self.weights = np.zeros(self.n)
+        self.knn_predict_res = None
     
     # Set X,Y
     def setCol(self,col):
@@ -230,16 +231,32 @@ class formulas:
         self.distanceVector = collections.defaultdict()
         cord_vector = list(self.graph.values())
         # update graph
+        shapes = {0:'x',1:'^'}
+        
         while vector:
             p1 = vector.pop()
+            dx = []
+            dy = []
+            dl = []
             for p2 in self.nodeList:
                 self.distanceVector[(p2.x,p2.y)] = self.dist(p1,p2)
+                dx.append(p2.x)
+                dy.append(p2.y)
+                dl.append(p2.label)
         # TODO: optimize lookup with headpq
         delta_values = list(self.distanceVector.values())
         delta_keys = list(self.distanceVector.keys())
-        delta = sorted(list(zip(delta_values,delta_keys)),
+        delta = sorted(list(zip(delta_values,delta_keys,dl)),
                         key= lambda x:x[0], reverse=False)
         
+        fig, ax = plt.subplots()
+        for i in range(len(dx)):
+            ax.scatter(dx[i], dy[i], marker=shapes[dl[i]])
+        ax.scatter(p2.x,p2.y,c='red',marker="o",  s=100)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        plt.show()
+        self.knn_predict_res = delta[0:knnSize]
         return delta[0:knnSize]
     
     # AI Helpers
@@ -271,21 +288,27 @@ class formulas:
 
         return m, b
 
-    def prepare_log_reg(self, dataToProcess=False):
+    def prepare_df(self, dataToProcess=False):
 
         if not dataToProcess:
-            X, labels = make_classification(n_features=2, n_redundant=0, 
+            features, labels = make_classification(n_features=2, n_redundant=0, 
                                 n_informative=2, random_state=1, 
                                 n_clusters_per_class=1)
         else:
-            X, labels = dataToProcess
+            features, labels = dataToProcess
+    
 
         shapes = ['x','^','.']    
-        nodeList = [point(X[x][0], X[x][1], labels[x], self.df) for x in range(len(X))]
+        nodeList = [point(features[x][0], features[x][1], labels[x], self.df) for x in range(len(features))]
         x = [n.x for n in nodeList]
         y = [n.y for n in nodeList]
-        log_df = pd.DataFrame({'x': x, 'y': y, 'label': labels})
-        self.log_df = log_df 
+        df = pd.DataFrame({'x': x, 'y': y, 'label': labels, 'node':nodeList})
+        self.df = df 
+        self.graph = collections.defaultdict(list)
+        self.nodeList = []
+        for node in nodeList:
+            self.graph[(node.x,node.y)].append((node.label,node))
+            self.nodeList.append(node)
         return x,y,labels
     
     def init_knn(self,labels):
@@ -355,7 +378,7 @@ class formulas:
         return v
 
 
-# Data Processing Children        
+# Data Processing children        
 
 class node(formulas):
     
