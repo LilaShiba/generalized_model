@@ -18,13 +18,15 @@ class formulas:
         self.log_df = None
         self.b = 0
         self.error_rate = 0
-        self.weights = np.zeros(self.n)
+        self.weights = None
         self.knn_predict_res = None
+        self.features = None
+        self.last_vector_2_int = None
     
     # Set X,Y
     def setCol(self,col):
         self.col = self.df[col]
-
+    
     def createX(self, colName):
         self.x = self.df[colName]
         self.x_name = colName
@@ -38,7 +40,13 @@ class formulas:
     def set_x_y(self, x, y):
         self.createX(x)
         self.createY(y)
-    
+        self.features = self.df[x]
+        
+    def set_df(self,data,cols):
+        df = pd.DataFrame(data, columns=cols)
+        self.df = df
+
+
     # Math
     def get_corr(self,x,y):
         self.set_x_y(x,y)
@@ -71,6 +79,8 @@ class formulas:
         counter = collections.Counter(sorted_data)
         self.vals, self.cnt = zip(*counter.items())
         self.probVector = [x/n for x in self.cnt]
+        plt.scatter(self.vals,self.probVector)
+        plt.show()
     
     def pdf_linearBinning(self,col):
         if not self.probVector:
@@ -98,17 +108,18 @@ class formulas:
 
     def ctl(self, col, samples):
         res = []
-        n = len(self.df[col])
+        n = len(self.df[col])-1
         for dataPoint in range(samples):
-            idxVector = [ np.random.randint(0,n),np.random.randint(0,n),np.random.randint(0,n)]
-
-            randomSample = 0
-            for idx in idxVector:
-                randomSample +=  idx
-            randomSample /= len(idxVector)
-            res.append(randomSample)
+            idxVector = [ 
+                        self.df.iloc[np.random.randint(0,n)][col], 
+                        self.df.iloc[np.random.randint(0,n)][col],
+                        self.df.iloc[np.random.randint(0,n)][col]
+                        ]
+            rs = np.sum(idxVector) // len(idxVector)
+            res.append(rs)
         plt.hist(res)
         plt.show()
+        return res
 
     def entropy(self, col):
     
@@ -169,6 +180,7 @@ class formulas:
         self.delta = delta
         return delta
 
+    
     # AI Algorithms
     def linear_regression(self):
          # y_hat = w.X + b
@@ -190,35 +202,19 @@ class formulas:
         
         print (f'm = {m} \nb = {b}')
 
-
-        max_x = np.max(self.x) + 10
-        min_x = np.min(self.y) - 10
+        max_x = np.max(self.x) 
+        min_x = np.min(self.y)
         x_delta = np.linspace (min_x, max_x, 10)
 
-        y_delta = b + m * x_delta
+        y_delta = (m * x_delta) + b
 
         plt.scatter(self.x,self.y)
         plt.plot(x_delta,y_delta,'ro')
         plt.show()
         return y_delta
 
-    def logistic_regression(self,lr=0.0001):
-        # y_hat = sigmoid(w.X + b)
-        b = 0
-        dw = 0
-        dw = 0
-        res = []
-        for y in self.y.tolist():
-            linear_model = np.dot(self.x, self.weights) + self.error_rate
-            y_prediction = self.sigmoid(linear_model)
-             # Update weights with gradient
-            dw = (1 / self.n) * np.dot(self.x.T, (y_prediction) - y)
-            db = (1 / self.n) * np.sum(y_prediction - y)
-            self.weights -= dw * lr
-            self.b -= db * lr
-            res.append(y_prediction)
-            
-        return res
+    def logistic_regression(self,step_num=300000,learning_rate=0.0001):
+        pass
         
     def insert_knn(self, node, normalized=False):
         node.label = 'Red'
@@ -267,16 +263,6 @@ class formulas:
  
    
     # AI Helpers
-    def create_corr_vectors(self,n,corr):
-        # Generate the first random vector from a normal distribution
-        x = np.random.normal(loc=0, scale=1, size=n)
-        # Generate the second random vector from a normal distribution
-        y = np.random.normal(loc=0, scale=1, size=n)
-        # Create a third vector with the desired correlation
-        z = (y + corr) * np.std(x) * (x - np.mean(x))
-        np.corrcoef(x,z)
-        return x,z
-    
     def update_weights_bias(self,m,b,learning_rate):
 
         for i in range(self.n):
@@ -302,6 +288,7 @@ class formulas:
         nodeList = [point(features[x][0], features[x][1], labels[x], self.df) for x in range(len(features))]
         x = [n.x for n in nodeList]
         y = [n.y for n in nodeList]
+    
         df = pd.DataFrame({'x': x, 'y': y, 'label': labels, 'node':nodeList})
         self.df = df 
         self.graph = collections.defaultdict(list)
@@ -309,6 +296,7 @@ class formulas:
         for node in nodeList:
             self.graph[(node.x,node.y)].append((node.label,node))
             self.nodeList.append(node)
+        self.features = [(n.x,n.y) for n in nodeList]
         return x,y,labels
     
     def init_knn(self,labels):
@@ -377,6 +365,51 @@ class formulas:
         
         return v
 
+    def create_correlated_vectors(self,n, corr):
+
+        '''
+        f(x,y) = (1 / (2π |Σ|^(1/2))) * 
+                exp[-1/2 * (x-μx, y-μy) Σ^(-1) (x-μx, y-μy)^T]
+
+            where:
+
+            x and y are the two variables
+            μx and μy are the means of x and y respectively
+            Σ^(-1) is the inverse of the covariance matrix Σ
+            |Σ| is the determinant of the covariance matrix Σ
+            π is the mathematical constant pi
+
+        '''
+        mean = [0, 0]
+        cov = [[1, corr], [corr, 1]]
+        x, y = np.random.multivariate_normal(mean, cov, n).T
+        return x, y
+
+    # Cleaners :)
+    def strings_to_time(self, c):
+        def helper(c):
+            nums = ['0','1','2','3','4','5','6','7','8','9']
+            flag = 0
+            ans = ''
+            for i in c:
+                if i in nums:
+                    flag = True
+                    ans += i
+                elif flag:
+                    break
+            if len(ans) > 0:
+                return int(ans)
+            return 0
+
+        self.df[c] = self.df[c].apply(lambda x: helper(x))
+
+    def vector_to_ints(self, vector):
+        unique = np.unique(vector)
+        look_up = collections.defaultdict()
+        for idx, val in enumerate(unique):
+            look_up[val] = idx
+        self.last_vector_2_int = [look_up[x] for x in vector]
+        return self.last_vector_2_int
 
 # Data Processing children        
 
