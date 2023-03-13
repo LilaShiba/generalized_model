@@ -18,6 +18,7 @@ class vect():
         self.vector_mu = np.mean(self.vector)
         self.distro = np.histogram(self.vector)        
         self.pdf()
+        #self.pdf_log_binning()
         self.get_entropy()
         self.get_variance()
         self.norm_vector()
@@ -46,14 +47,19 @@ class vect():
         corr = top_term/np.sqrt(btm_term_x * btm_term_y)
         return corr
 
-    def pdf(self,round_by=2):
-        sorted_data = sorted(np.round(self.vector,round_by),reverse=False)
+    def pdf(self):
+        sorted_data = sorted(self.vector,reverse=False)
         n = len(sorted_data)
         unique_sorted_data = np.unique(sorted_data)
         counter = collections.Counter(sorted_data)
         self.vals, self.cnt = zip(*counter.items())
         self.probVector = [x/n for x in self.cnt]
         plt.scatter(self.vals,self.probVector)
+        plt.title(f"PDF: Linear Binning & Scaling")
+        # plt.xscale("log")
+        # plt.yscale("log")
+        plt.xlabel('K')
+        plt.ylabel('P(K)')
         plt.show()
     
     def pdf_linearBinning(self):
@@ -67,17 +73,33 @@ class vect():
     def pdf_log_binning(self):
         if not self.probVector:
             self.pdf(self.vector)
+
         inMax, inMin = max(self.probVector), min(self.probVector)
-        logBins = np.logspace(np.log10(inMin),np.log10(inMax))
+        self.logBins = np.logspace(np.log10(inMin),np.log10(inMax))
         # degree, count
-        self.vals, log_bin_edges = np.histogram(self.probVector,bins=logBins,
+        self.hist_cnt, self.log_bin_edges = np.histogram(self.probVector,bins=self.logBins,
                                        density=True, range=(inMin, inMax))
         plt.title(f"Log Binning & Scaling")
         plt.xscale("log")
         plt.yscale("log")
         plt.xlabel('K')
         plt.ylabel('P(K)')
-        plt.plot(self.vals, log_bin_edges[:-1], 'o')
+        n = np.sum(self.hist_cnt)
+        self.log_prob_vector = [x/n for x in self.hist_cnt]
+        plt.plot(self.hist_cnt, self.log_prob_vector[::-1], 'o')
+        plt.show()
+
+    def cum_distro(self):
+        values = np.array(self.probVector)
+        cdf = values.cumsum() / values.sum()
+       # cdf = np.cumsum(probVector)
+        ccdf = 1-cdf
+        plt.xscale("log")
+        plt.yscale("log")
+        plt.title(f"Cumulative Distribution")
+        plt.ylabel("P(K) >= K")
+        plt.xlabel("K")
+        plt.plot(cdf[::-1])
         plt.show()
 
     def ctl(self, samples=1000):
