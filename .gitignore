@@ -1,5 +1,6 @@
 *.mtx
 *.tsv
 *.dat
+*.DS_Store
 stats_py_ai_ml/data/DLBCL1
 ufo_research/data/nuforc_reports.csv
