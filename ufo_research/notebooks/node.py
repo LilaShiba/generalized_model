@@ -6,7 +6,11 @@ from sklearn.datasets import make_classification
 
 
 class vect():
-    def __init__(self,vector,toInt=False,timeChange=False):
+    
+    def __init__(self,name):
+        self.name = name 
+
+    def set_up(self,vector,toInt=False,timeChange=False):
         self.vector = np.array(vector)
         self.n = len(self.vector)
         # If qualitative vector
@@ -19,8 +23,6 @@ class vect():
         self.distro = np.histogram(self.vector)        
         self.pdf()
         
-        
-
     def basic_stats(self):
         self.pdf_log_binning()
         self.get_entropy()
@@ -47,7 +49,7 @@ class vect():
         top_term = 0
         btm_term_x = 0
         btm_term_y = 0
-        for i in range(n):
+        for i in range(self.n):
             top_term += (x[i] - x_mu) * (y[i] - y_mu)
             btm_term_x += (x[i] - x_mu)**2
             btm_term_y += (y[i] - y_mu)**2
@@ -55,13 +57,27 @@ class vect():
         corr = top_term/np.sqrt(btm_term_x * btm_term_y)
         return corr
 
+    def get_coverance(self,v2):
+        n = len(self.vector)
+        y_mu = np.mean(v2)
+        coverance = np.sum([(x - self.vector_mu)*(y - y_mu) 
+                            for x,y in zip(self.vector,v2)]) / n-1
+        return coverance
+    
+    def get_slope(self,v2):
+        slope = self.get_coverance(v2) / self.get_variance()
+        self.slope = slope
+        return slope
+
     def pdf(self):
-        sorted_data = sorted(self.vector,reverse=False)
-        n = len(sorted_data)
-        unique_sorted_data = np.unique(sorted_data)
-        counter = collections.Counter(sorted_data)
+        #sorted_data = sorted(self.vector,reverse=False)
+        counter = collections.Counter(self.vector)
         self.vals, self.cnt = zip(*counter.items())
+        n = np.sum(self.cnt)
         self.probVector = [x/n for x in self.cnt]
+
+
+
         plt.scatter(self.vals,self.probVector)
         plt.title(f"PDF: Linear Binning & Scaling")
         # plt.xscale("log")
@@ -143,6 +159,7 @@ class vect():
     
     def get_variance(self):
         self.variance = np.sum([(x - self.vector_mu)**2 for x in self.vector]) / self.n
+        return self.variance
     
     def norm_vector(self):
         v_min = np.min(self.vector)
@@ -176,12 +193,54 @@ class vect():
 
 class point(vect):
     def __init__(self,x,y,label) -> None:
-        self.n1 = vect.__init__(self, x)
-        self.n2 = vect.__init__(self, y)
+        super().__init__(label)
+        self.n1 = vect(label)
+        self.n2 = vect(label)
+        self.n1.set_up(x)
+        self.n2.set_up(y)
         self.x = x 
         self.y = y 
+        
+
+        # Creating instances of the classes
         self.label = label
         self.pearsonR = self.n1.get_corr(y)
+        self.coverance = self.n1.get_coverance(self.n2.vector)
+        self.slope = self.n1.get_slope(self.n2.vector)
+
+
+    # AI Algorithms
+    def linear_regression(self):
+         # y_hat = w.X + b
+        n = len(self.x)
+        x_mu = self.n1.vector_mu
+        y_mu = self.n2.vector_mu
+        
+
+        top_term = 0
+        btm_term = 0
+
+        for i in range(n):
+            top_term += (self.x[i] - x_mu) * (self.y[i] - y_mu)
+            btm_term += (self.x[i] - x_mu)**2
+
+        m = top_term/btm_term
+        b = y_mu - (m * x_mu)
+
+        
+        print (f'm = {m} \nb = {b}')
+
+
+        max_x = np.max(self.x) + 10
+        min_x = np.min(self.y) - 10
+        x_delta = np.linspace (min_x, max_x, 10)
+
+        y_delta = b + m * x_delta
+
+        plt.scatter(self.x,self.y)
+        plt.plot(x_delta,y_delta,'ro')
+        plt.show()
+        return y_delta              
 
         
         
