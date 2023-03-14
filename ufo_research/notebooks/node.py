@@ -190,11 +190,16 @@ class vect():
         for idx, val in enumerate(unique):
             look_up[val] = idx
         self.vector = [look_up[x] for x in self.vector]
+    
+    def dist(self,p1,p2):
+        res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
+        return round(np.sqrt(res),4)
 
 class point(vect):
     def __init__(self,x,y,label) -> None:
         super().__init__(label)
         self.n1 = vect(label)
+        self.n = len(x)
         self.n2 = vect(label)
         self.n1.set_up(x)
         self.n2.set_up(y)
@@ -202,12 +207,18 @@ class point(vect):
         self.y = y 
         
 
-        # Creating instances of the classes
+        self.nodeList = None 
+        self.adjList = None
+        self.scatterGraph = None 
+        self.scatterGraphNorm = None
+        self.graph = None
+        self.distanceVector = None
+        
+        # Creating instances of the parent class
         self.label = label
         self.pearsonR = self.n1.get_corr(y)
         self.coverance = self.n1.get_coverance(self.n2.vector)
         self.slope = self.n1.get_slope(self.n2.vector)
-
 
     # AI Algorithms
     def linear_regression(self):
@@ -242,7 +253,136 @@ class point(vect):
         plt.show()
         return y_delta              
 
-        
-        
+    def knn_predict(self,target,knnSize=5):
+        '''
+            vector 1D Node array
+        '''
+        # Define a list of 30 colors
+        colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
+          'peru', 'slateblue', 'sienna', 'rosybrown', 'mediumvioletred', 'cadetblue', 'crimson',
+          'darkcyan', 'deeppink', 'firebrick', 'forestgreen', 'fuchsia','blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+          'olive', 'navy', 'teal', 'magenta', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
+          'peru', 'slateblue','red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
+          'peru', 'slateblue', 'sienna', 'rosybrown', 'mediumvioletred', 'cadetblue', 'crimson',
+          'darkcyan', 'deeppink', 'firebrick', 'forestgreen', 'fuchsia','blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+          'olive', 'navy', 'teal', 'magenta', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
+          'peru', 'slateblue','red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
+          'peru', 'slateblue', 'sienna', 'rosybrown', 'mediumvioletred', 'cadetblue', 'crimson',
+          'darkcyan', 'deeppink', 'firebrick', 'forestgreen', 'fuchsia','blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+          'olive', 'navy', 'teal', 'magenta', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
+          'peru', 'slateblue']
 
+        # Define a list of 30 marker symbols
+        shapes = ['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X', '|', '_',
+           'o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X','x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X', '|', '_',
+           'o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X','+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X', '|', '_',
+           'o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's']
+
+        # Define a list of 30 line styles
+        line_styles = ['-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-',
+               '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.','-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-',
+               '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--',]
+
+        marker_dict = {i: shapes[i] for i in range(len(shapes)-1)}
+        colors_dict = {i: colors[i] for i in range(len(colors)-1)}
+
+
+        # preprocess
+        self.knn_init(self.label)
+        self.distanceVector = collections.defaultdict()
+        cord_vector = list(self.graph.values())
+        # update graph
+        p1 = target
+        dx,dy,dl = [],[],[]
+        for p2 in self.nodeList:
+            self.distanceVector[(p2.x,p2.y)] = self.dist(p1,p2)
+            dx.append(p2.x)
+            dy.append(p2.y)
+            dl.append(p1.x)
+        # TODO: optimize lookup with headpq
+        delta_values = list(self.distanceVector.values())
+        delta_keys = list(self.distanceVector.keys())
+        delta = sorted(list(zip(delta_values,delta_keys,dl)),
+                        key= lambda x:x[0], reverse=False)
+        
+        fig, ax = plt.subplots()
+        for i in range(len(dx)):
+            ax.scatter(dx[i], dy[i], marker=marker_dict[dx[i]],color=colors_dict[dy[i]])
+        ax.scatter(p2.x,p2.y,c='red',marker="o",  s=100)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        plt.show()
+        self.knn_predict_res = delta[0:knnSize]
+        return delta[0:knnSize]
+
+    def knn_init(self,labels):
+        self.create_node_list(labels)
+        self.create_graph()
+        
+    def create_node_list(self,label='County'):
+        x,y = self.x, self.y
+        nodeList = [] 
+        adjList = collections.defaultdict()
+        for idx in range(self.n):
+            dx = self.x[idx]
+            dy = self.y[idx]
+            delta = node(   dx, 
+                            dy,
+                            idx,
+                            label         
+                        )
+            nodeList.append(delta)
+            adjList[(dx,dy)] = delta
+        
+        self.nodeList = nodeList
+        self.adjList = adjList
+    
+    def create_graph(self):
+        if not self.nodeList:
+            return ('No node list. Complie first')
+        
+        graph = collections.defaultdict(list)
+
+        for node in self.nodeList:
+            x,y = node.x, node.y 
+            graph[(x,y)].append(node)
+        
+        delta = list(graph.keys())
+        x = [i[0] for i in delta]
+        y = [i[1] for i in delta]
+        norm_x, norm_y = self.norm_vector_2D(x,y)
+        self.scatterGraph = (x,y)
+        self.scatterGraphNorm = (norm_x, norm_y)
+        self.graph = graph
+        return graph
+    
+    # Helpers 
+    def norm_vector_2D(self, x,y):
+        x = self.norm_vector(x)
+        y = self.norm_vector(y)
+        return x,y
+
+    def norm_vector(self, vector):
+        v_min = np.min(vector)
+        v_max = np.max(vector)
+        v_max_min = v_max - v_min
+        return [(x-v_min)/(v_max_min) for x in vector]
+
+    def dist(self,p1,p2):
+        res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
+        return round(np.sqrt(res),4) 
+
+class node():
+    
+    def __init__(self,x,y,idx,label) -> None:
+        self.x = x 
+        self.y = y 
+        self.idx = idx
+        self.label = label
     
