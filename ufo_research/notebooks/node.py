@@ -18,12 +18,20 @@ class vect():
         self.vector_mu = np.mean(self.vector)
         self.distro = np.histogram(self.vector)        
         self.pdf()
-        #self.pdf_log_binning()
-        self.get_entropy()
-        self.get_variance()
-        self.norm_vector()
-        self.std = np.sqrt(self.variance)
+        
+        
 
+    def basic_stats(self):
+        self.pdf_log_binning()
+        self.get_entropy()
+        self.get_cdf()
+        self.get_variance()
+        self.std = np.sqrt(self.variance)
+        self.norm_vector()
+        print('entropy:', self.entropy)
+        print('variance:', self.variance)
+        print('vector_mu:', self.vector_mu)
+        print('std:', self.std)   
 
     def get_corr(self,y):
         
@@ -89,11 +97,12 @@ class vect():
         plt.plot(self.hist_cnt, self.log_prob_vector[::-1], 'o')
         plt.show()
 
-    def cum_distro(self):
+    def get_cdf(self):
         values = np.array(self.probVector)
         cdf = values.cumsum() / values.sum()
        # cdf = np.cumsum(probVector)
-        ccdf = 1-cdf
+        self.ccdf = 1-cdf
+        self.cdf = cdf 
         plt.xscale("log")
         plt.yscale("log")
         plt.title(f"Cumulative Distribution")
@@ -102,7 +111,7 @@ class vect():
         plt.plot(cdf[::-1])
         plt.show()
 
-    def ctl(self, samples=1000):
+    def get_ctl(self, samples=1000):
         res = []
         n = len(self.vector)-1
 
