@@ -311,9 +311,10 @@ class point(vect):
         delta = sorted(list(zip(delta_values,delta_keys,dl)),
                         key= lambda x:x[0], reverse=False)
         
+        # TODO: CLUSTER GROUPs
         fig, ax = plt.subplots()
         for i in range(len(dx)):
-            ax.scatter(dx[i], dy[i], marker=marker_dict[dx[i]],color=colors_dict[dy[i]])
+            ax.scatter(dx[i], dy[i])#, marker=marker_dict[dx[i]],color=colors_dict[dy[i]])
         ax.scatter(p2.x,p2.y,c='red',marker="o",  s=100)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
