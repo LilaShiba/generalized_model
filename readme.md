@@ -13,7 +13,7 @@ Using G-Tech's OMSCS courses to help with the following tasks:
 
 | Course      | Project | Reason|
 | ----------- | ----------- | -----------|
-| Ed-Tech      | Predictions of educational oppression | always more math
+| Ed-Tech      | Predictions of educational oppression | always more math & love
 | NLP   | Text-Analysis of UFO Reports-b/c I can        | learn nlp 
 | Ubiquitous Computing| What Does My Dog Want     | AI must learn to Love
 
