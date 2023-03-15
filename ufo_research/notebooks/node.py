@@ -9,6 +9,7 @@ class vect():
     
     def __init__(self,name):
         self.name = name 
+        self.pdf_from_mu_vect = None 
 
     def set_up(self,vector,toInt=False,timeChange=False):
         self.vector = np.array(vector)
@@ -23,11 +24,11 @@ class vect():
         self.distro = np.histogram(self.vector)        
         self.pdf()
         
-    def basic_stats(self):
-        self.pdf(True)
-        self.pdf_log_binning()
+    def basic_stats(self,show=True):
+        self.pdf(show)
+        self.pdf_log_binning(show)
         self.get_entropy()
-        self.get_cdf()
+        self.get_cdf(show)
         self.get_variance()
         self.std = np.sqrt(self.variance)
         self.norm_vector()
@@ -95,7 +96,7 @@ class vect():
         plt.plot(self.vals, self.probVector,'o')
         plt.show()
     
-    def pdf_log_binning(self):
+    def pdf_log_binning(self,show=True):
         if not self.probVector:
             self.pdf(self.vector)
 
@@ -103,30 +104,35 @@ class vect():
         self.logBins = np.logspace(np.log10(inMin),np.log10(inMax))
         # degree, count
         self.hist_cnt, self.log_bin_edges = np.histogram(self.probVector,bins=self.logBins,
-                                       density=True, range=(inMin, inMax))
-        plt.title(f"Log Binning & Scaling")
-        plt.xscale("log")
-        plt.yscale("log")
-        plt.xlabel('K')
-        plt.ylabel('P(K)')
+                                    density=True, range=(inMin, inMax))
+       
         n = np.sum(self.hist_cnt)
-        self.log_prob_vector = [x/n for x in self.hist_cnt]
-        plt.plot(self.hist_cnt, self.log_prob_vector[::-1], 'o')
-        plt.show()
 
-    def get_cdf(self):
+        self.log_prob_vector = [x/n for x in self.hist_cnt]
+
+        if show:
+            plt.title(f"Log Binning & Scaling")
+            plt.xscale("log")
+            plt.yscale("log")
+            plt.xlabel('K')
+            plt.ylabel('P(K)')
+            plt.plot(self.hist_cnt, self.log_prob_vector[::-1], 'o')
+            plt.show()
+
+    def get_cdf(self,show=True):
         values = np.array(self.probVector)
         cdf = values.cumsum() / values.sum()
        # cdf = np.cumsum(probVector)
         self.ccdf = 1-cdf
         self.cdf = cdf 
-        plt.xscale("log")
-        plt.yscale("log")
-        plt.title(f"Cumulative Distribution")
-        plt.ylabel("P(K) >= K")
-        plt.xlabel("K")
-        plt.plot(cdf[::-1])
-        plt.show()
+        if show:
+            plt.xscale("log")
+            plt.yscale("log")
+            plt.title(f"Cumulative Distribution")
+            plt.ylabel("P(K) >= K")
+            plt.xlabel("K")
+            plt.plot(cdf[::-1])
+            plt.show()
 
     def get_ctl(self, samples=1000):
         res = []
@@ -162,11 +168,14 @@ class vect():
         self.variance = np.sum([(x - self.vector_mu)**2 for x in self.vector]) / self.n
         return self.variance
     
-    def norm_vector(self):
-        v_min = np.min(self.vector)
-        v_max = np.max(self.vector)
+    def norm_vector(self,x=False):
+        if not x:
+            x = self.vector
+        v_min = np.min(x)
+        v_max = np.max(x)
         v_max_min = v_max - v_min
-        self.vector_norm = [(x-v_min)/(v_max_min) for x in self.vector]
+        self.vector_norm = [(x-v_min)/(v_max_min) for x in x]
+        return self.vector_norm
     
     def strings_to_time(self):
         def helper(c):
@@ -195,6 +204,32 @@ class vect():
     def dist(self,p1,p2):
         res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
         return round(np.sqrt(res),4)
+
+    def pdf_from_mu(self,x,show=True):
+        '''        
+        f(x) = (1/σ√(2π)) * e^(-(x-μ)²/(2σ²))
+
+        Where:
+
+        x is the value of the random variable
+        μ is the mean of the distribution
+        σ is the standard deviation of the distribution
+        e is the mathematical constant e ≈ 2.71828
+        
+        '''
+        if not self.pdf_from_mu_vect:
+            c = collections.Counter(self.vector)
+            vals, cnt = zip(*c.items())
+            cnt = self.norm_vector(cnt)
+            n = np.sum(cnt)
+            mu = n/len(cnt)
+            std = np.std(cnt)
+            self.pdf_from_mu_vect = [x/n for x in cnt]
+        if show:
+            print("PDF_VALUE:", self.pdf_from_mu_vect[x])
+        return self.pdf_from_mu_vect[x]
+
+
 
     def create_corr_vectors(self,n,corr):
         # Generate the first random vector from a normal distribution
