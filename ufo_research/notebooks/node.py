@@ -24,6 +24,7 @@ class vect():
         self.pdf()
         
     def basic_stats(self):
+        self.pdf(True)
         self.pdf_log_binning()
         self.get_entropy()
         self.get_cdf()
@@ -69,7 +70,7 @@ class vect():
         self.slope = slope
         return slope
 
-    def pdf(self):
+    def pdf(self,show=False):
         #sorted_data = sorted(self.vector,reverse=False)
         counter = collections.Counter(self.vector)
         self.vals, self.cnt = zip(*counter.items())
@@ -77,14 +78,14 @@ class vect():
         self.probVector = [x/n for x in self.cnt]
 
 
-
-        plt.scatter(self.vals,self.probVector)
-        plt.title(f"PDF: Linear Binning & Scaling")
-        # plt.xscale("log")
-        # plt.yscale("log")
-        plt.xlabel('K')
-        plt.ylabel('P(K)')
-        plt.show()
+        if show:
+            plt.scatter(self.vals,self.probVector)
+            plt.title(f"PDF: Linear Binning & Scaling")
+            # plt.xscale("log")
+            # plt.yscale("log")
+            plt.xlabel('K')
+            plt.ylabel('P(K)')
+            plt.show()
     
     def pdf_linearBinning(self):
         if not self.probVector:
@@ -195,16 +196,29 @@ class vect():
         res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
         return round(np.sqrt(res),4)
 
+    def create_corr_vectors(self,n,corr):
+        # Generate the first random vector from a normal distribution
+        x = np.random.normal(loc=0, scale=1, size=n)
+            # Generate the second random vector from a normal distribution
+        y = np.random.normal(loc=0, scale=1, size=n)
+            # Create a third vector with the desired correlation
+        z = (y + corr) * np.std(x) * (x - np.mean(x))
+        np.corrcoef(x,z)
+        return x,z
+    
 class point(vect):
     def __init__(self,x,y,label) -> None:
         super().__init__(label)
+
         self.n1 = vect(label)
-        self.n = len(x)
         self.n2 = vect(label)
         self.n1.set_up(x)
         self.n2.set_up(y)
+        
         self.x = x 
-        self.y = y 
+        self.y = y
+        self.n = len(x)
+        self.m = len(y) 
         
 
         self.nodeList = None 
@@ -261,40 +275,19 @@ class point(vect):
         colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
           'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
           'peru', 'slateblue', 'sienna', 'rosybrown', 'mediumvioletred', 'cadetblue', 'crimson',
-          'darkcyan', 'deeppink', 'firebrick', 'forestgreen', 'fuchsia','blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
-          'olive', 'navy', 'teal', 'magenta', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
-          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
-          'peru', 'slateblue','red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
-          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
-          'peru', 'slateblue', 'sienna', 'rosybrown', 'mediumvioletred', 'cadetblue', 'crimson',
-          'darkcyan', 'deeppink', 'firebrick', 'forestgreen', 'fuchsia','blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
-          'olive', 'navy', 'teal', 'magenta', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
-          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
-          'peru', 'slateblue','red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
-          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
-          'peru', 'slateblue', 'sienna', 'rosybrown', 'mediumvioletred', 'cadetblue', 'crimson',
-          'darkcyan', 'deeppink', 'firebrick', 'forestgreen', 'fuchsia','blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
-          'olive', 'navy', 'teal', 'magenta', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
-          'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
+          'darkcyan', 'deeppink', 'firebrick', 'forestgreen', 'fuchsia','blue',
           'peru', 'slateblue']
 
         # Define a list of 30 marker symbols
-        shapes = ['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X', '|', '_',
-           'o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X','x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X', '|', '_',
-           'o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X','+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X', '|', '_',
-           'o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's']
+        shapes = ['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X', '|', '_']
 
-        # Define a list of 30 line styles
-        line_styles = ['-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-',
-               '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.','-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-',
-               '--', '-.', ':', '-', '--', '-.', ':', '-', '--', '-.', ':', '-', '--',]
-
+    
         marker_dict = {i: shapes[i] for i in range(len(shapes)-1)}
         colors_dict = {i: colors[i] for i in range(len(colors)-1)}
 
 
         # preprocess
-        self.knn_init(self.label)
+        self.knn_init()
         self.distanceVector = collections.defaultdict()
         cord_vector = list(self.graph.values())
         # update graph
@@ -322,11 +315,11 @@ class point(vect):
         self.knn_predict_res = delta[0:knnSize]
         return delta[0:knnSize]
 
-    def knn_init(self,labels):
-        self.create_node_list(labels)
+    def knn_init(self):
+        self.create_node_list()
         self.create_graph()
         
-    def create_node_list(self,label='County'):
+    def create_node_list(self):
         x,y = self.x, self.y
         nodeList = [] 
         adjList = collections.defaultdict()
@@ -336,7 +329,7 @@ class point(vect):
             delta = node(   dx, 
                             dy,
                             idx,
-                            label         
+                            self.label         
                         )
             nodeList.append(delta)
             adjList[(dx,dy)] = delta
@@ -378,6 +371,34 @@ class point(vect):
     def dist(self,p1,p2):
         res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
         return round(np.sqrt(res),4) 
+
+    def remove_extreme_outlier(self,r=False):
+        '''
+        TODO: Generalize a concept of 'extreme'
+        r set True processes y
+        '''
+        x_y = list(zip(self.x, self.y))
+
+        if not r:
+            x_max = max(x_y, key=lambda x: x[0])
+            x_max_idx = x_y.index(x_max)
+            x_y.pop(x_max_idx)
+
+        else:
+            y_max = max(x_y, key=lambda x: x[1])
+            y_max_idx = x_y.index(y_max)
+            x_y.pop(y_max_idx)
+
+        dx, dy = list(zip(*x_y))
+        self.x, self.y = dx, dy
+        self.n1.set_up(dx)
+        self.n2.set_up(dy)
+        
+
+
+
+
+
 
 class node():
     
