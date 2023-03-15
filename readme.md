@@ -3,7 +3,7 @@
 This Class allows one to instantiate a dataframe(s)' column(s) to:
 - create points, i.e., combinations of features
 - access basic descriptive statistics and machine learning algorithms
-- a in dev- a [second try at a generalized ai model](https://github.com/kyle1james/teachAiToFeelSpring2022) 
+- in dev- a [second try at a generalized ai model](https://github.com/kyle1james/teachAiToFeelSpring2022) 
 - hope it helps in leveling up in maths
 
 
