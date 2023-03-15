@@ -20,8 +20,10 @@ class vect():
         if timeChange:
             self.strings_to_time()
 
-        self.vector_mu = np.mean(self.vector)
-        self.distro = np.histogram(self.vector)        
+        c = collections.Counter(self.vector)
+        self.vals, self.cnt = list(zip(*c.items()))
+        self.vector_mu = np.mean(self.cnt)
+        self.distro = c   
         self.pdf()
         
     def basic_stats(self,show=True):
@@ -71,19 +73,22 @@ class vect():
         self.slope = slope
         return slope
 
-    def pdf(self,show=False):
+    def pdf(self,show=False,title=False):
         #sorted_data = sorted(self.vector,reverse=False)
-        counter = collections.Counter(self.vector)
-        self.vals, self.cnt = zip(*counter.items())
+        if not self.cnt or not self.vals:
+            counter = collections.Counter(self.vector)
+            self.vals, self.cnt = zip(*counter.items())
+        
         n = np.sum(self.cnt)
         self.probVector = [x/n for x in self.cnt]
 
-
         if show:
             plt.scatter(self.vals,self.probVector)
-            plt.title(f"PDF: Linear Binning & Scaling")
-            # plt.xscale("log")
-            # plt.yscale("log")
+            if not title:
+                plt.title(f"PDF: Linear Binning & Scaling")
+            else:
+                plt.title(title)
+                
             plt.xlabel('K')
             plt.ylabel('P(K)')
             plt.show()
