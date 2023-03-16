@@ -24,16 +24,18 @@ class vect():
         self.vals, self.cnt = list(zip(*c.items()))
         self.vector_mu = np.mean(self.cnt)
         self.distro = c   
-        self.pdf()
+      
         
     def basic_stats(self,show=True):
-        self.pdf(show)
-        self.pdf_log_binning(show)
-        self.get_entropy()
-        self.get_cdf(show)
         self.get_variance()
         self.std = np.sqrt(self.variance)
         self.norm_vector()
+        self.pdf(show)
+        self.pdf_from_mu(show)
+        self.pdf_log_binning(show)
+        self.get_entropy()
+        self.get_cdf(show)
+        
         print('entropy:', self.entropy)
         print('variance:', self.variance)
         print('vector_mu:', self.vector_mu)
@@ -210,7 +212,7 @@ class vect():
         res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
         return round(np.sqrt(res),4)
 
-    def pdf_from_mu(self,x,show=True):
+    def pdf_from_mu(self, show=True, idx=-1):
         '''        
         f(x) = (1/σ√(2π)) * e^(-(x-μ)²/(2σ²))
 
@@ -230,11 +232,9 @@ class vect():
             mu = n/len(cnt)
             std = np.std(cnt)
             self.pdf_from_mu_vect = [x/n for x in cnt]
-        if show:
-            print("PDF_VALUE:", self.pdf_from_mu_vect[x])
-        return self.pdf_from_mu_vect[x]
-
-
+        if show and idx >-1:
+            print("PDF_VALUE:", self.pdf_from_mu_vect[idx])
+            
 
     def create_corr_vectors(self,n,corr):
         # Generate the first random vector from a normal distribution
