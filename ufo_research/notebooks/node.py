@@ -24,8 +24,7 @@ class vect():
         self.vals, self.cnt = list(zip(*c.items()))
         self.vector_mu = np.mean(self.cnt)
         self.distro = c   
-      
-        
+            
     def basic_stats(self,show=True):
         self.get_variance()
         self.std = np.sqrt(self.variance)
@@ -62,18 +61,6 @@ class vect():
         
         corr = top_term/np.sqrt(btm_term_x * btm_term_y)
         return corr
-
-    def get_coverance(self,v2):
-        n = len(self.vector)
-        y_mu = np.mean(v2)
-        coverance = np.sum([(x - self.vector_mu)*(y - y_mu) 
-                            for x,y in zip(self.vector,v2)]) / n-1
-        return coverance
-    
-    def get_slope(self,v2):
-        slope = self.get_coverance(v2) / self.get_variance()
-        self.slope = slope
-        return slope
 
     def pdf(self,show=False,title=False):
         #sorted_data = sorted(self.vector,reverse=False)
@@ -235,7 +222,6 @@ class vect():
         if show and idx >-1:
             print("PDF_VALUE:", self.pdf_from_mu_vect[idx])
             
-
     def create_corr_vectors(self,n,corr):
         # Generate the first random vector from a normal distribution
         x = np.random.normal(loc=0, scale=1, size=n)
@@ -246,6 +232,18 @@ class vect():
         np.corrcoef(x,z)
         return x,z
     
+    def get_coverance(self,v2):
+        n = len(self.vector)
+        y_mu = np.mean(v2)
+        coverance = np.sum([(x - self.vector_mu)*(y - y_mu) 
+                            for x,y in zip(self.vector,v2)]) / n-1
+        return coverance
+    
+    def get_slope(self,v2):
+        slope = self.get_coverance(v2) / self.get_variance()
+        self.slope = slope
+        return slope
+
 class point(vect):
     def __init__(self,x,y,label) -> None:
         super().__init__(label)
@@ -434,12 +432,7 @@ class point(vect):
         self.n1.set_up(dx)
         self.n2.set_up(dy)
         
-
-
-
-
-
-
+    
 class node():
     
     def __init__(self,x,y,idx,label) -> None:
@@ -447,4 +440,48 @@ class node():
         self.y = y 
         self.idx = idx
         self.label = label
+
+class LogisticR:
+    def __init__(self,X,y) -> None:
+        self.X = X
+        self.y = y
+        self.iterations = 1000
+        self.learning_rate = 0.01
+
+    def sigmoid(self, z):
+        return 1/ (1 + np.exp(-z))
+
+    # AI
+    def logistic_regression_fit(self):
+
+        X = np.array(self.X)
+        y = np.array(self.y)
+        m = len(y)
+        # Add col of 1 for bias term
+        X = np.insert(X, 0, 1, axis=1)
+        # init weights to 0
+        self.w = np.zeros(X.shape[1])
+        
+        for i in range(self.iterations):
+            z = np.dot(X, self.w)
+            y_pred = self.sigmoid(z)
+
+            cost = (-1 / m) * np.sum(y * np.log(y_pred) + (1 - y) * np.log(1 - y_pred))
+
+            dw = (1/ m) * np.dot(X.T, (y_pred - y))
+
+            self.w -= self.learning_rate * dw
+
+            if i % 100 == 0:
+                print(f"Cost after iteration {i}: {cost}")
+
     
+    def log_predict(self, x):
+        x = np.array(x)
+        x = np.insert(x,0,1,axis=1)
+        
+        z = np.dot(x, self.w) 
+        y_pred = self.sigmoid(z)
+
+        self.y_pred = y_pred
+        return np.round(y_pred)
