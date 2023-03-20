@@ -311,10 +311,17 @@ class point(vect):
         plt.show()
         return y_delta              
 
-    def knn_predict(self,target,knnSize=5):
+    def knn_predict(self,target,norm=False,knnSize=5):
         '''
             vector 1D Node array
         '''
+
+        # Normalize
+        if norm:
+            self.norm_vector_2D(self.x,self.y)
+            
+            target.x = (target.x-self.v_min)/(self.v_max_min)
+            target.y = (target.y-self.v_min)/(self.v_max_min)
         # Define a list of 30 colors
         colors = ['crimson',
           'darkcyan', 'forestgreen', 'fuchsia','blue','red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
@@ -402,16 +409,27 @@ class point(vect):
     
     # Helpers 
     def norm_vector_2D(self, x,y):
-        x = self.norm_vector(x)
-        y = self.norm_vector(y)
-        return x,y
-
-    def norm_vector(self, vector):
+        vector = x+y
+        x_size, y_size = len(x),len(y)
         v_min = np.min(vector)
         v_max = np.max(vector)
         v_max_min = v_max - v_min
-        return [(x-v_min)/(v_max_min) for x in vector]
+        self.vector = [(x-v_min)/(v_max_min) for x in vector]
+        self.x = self.vector[:x_size]
+        self.y = self.vector[x_size:]
+        self.v_min = v_min 
+        self.v_max_min = v_max_min
+        return self.x,self.y
 
+    def norm_vector(self, vector=False):
+        if not vector:
+            vector = self.vector
+        v_min = np.min(vector)
+        v_max = np.max(vector)
+        v_max_min = v_max - v_min
+        self.vector = [(x-v_min)/(v_max_min) for x in vector]
+        return self.vector
+   
     def dist(self,p1,p2):
         res = (p2.x - p1.x)**2 + (p2.y - p1.y)**2
         return round(np.sqrt(res),4) 
