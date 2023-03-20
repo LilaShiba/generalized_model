@@ -12,7 +12,12 @@ class vect():
         self.pdf_from_mu_vect = None 
 
     def set_up(self,vector,toInt=False,timeChange=False):
-        self.vector = np.array(vector)
+        a = list(vector)
+        a = np.array(a)
+        #self.vector = np.where(np.isnan(a), ma.array(a, mask=np.isnan(a)).mean(axis=1)[:, np.newaxis], a)
+        self.vector = np.nan_to_num(a,nan=0)
+        
+        #self.vector = np.where(np.isnan(a),-1)
         self.n = len(self.vector)
         # If qualitative vector
         if toInt:
@@ -189,8 +194,9 @@ class vect():
         self.vector = [helper(x) for x in self.vector] 
 
     def vector_to_ints(self):
+        #self.vector.astype(str)
         unique = np.unique(self.vector)
-        look_up = collections.defaultdict()
+        look_up = collections.defaultdict(int)
         for idx, val in enumerate(unique):
             look_up[val] = idx
         self.vector = [look_up[x] for x in self.vector]
@@ -310,14 +316,14 @@ class point(vect):
             vector 1D Node array
         '''
         # Define a list of 30 colors
-        colors = ['red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
+        colors = ['crimson',
+          'darkcyan', 'forestgreen', 'fuchsia','blue','red', 'green', 'blue', 'orange', 'purple', 'pink', 'brown', 'gray', 'black',
           'olive', 'navy', 'teal', 'magenta', 'maroon', 'coral', 'gold', 'lime', 'indigo',
-          'peru', 'slateblue', 'sienna', 'rosybrown', 'mediumvioletred', 'cadetblue', 'crimson',
-          'darkcyan', 'deeppink', 'firebrick', 'forestgreen', 'fuchsia','blue',
+          'peru', 'slateblue', 'sienna', 'rosybrown', 'mediumvioletred',
           'peru', 'slateblue']
 
         # Define a list of 30 marker symbols
-        shapes = ['o', '.', ',', 'x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '*', 'h', 'H', 'X', '|', '_']
+        shapes = [ 'x', '+', 'v', '^', '<', '>', 's', 'd', 'p', 'P', '.', ',','*', 'h', 'H', 'X', '|', '_']
 
     
         marker_dict = {i: shapes[i] for i in range(len(shapes)-1)}
@@ -335,7 +341,7 @@ class point(vect):
             self.distanceVector[(p2.x,p2.y)] = self.dist(p1,p2)
             dx.append(p2.x)
             dy.append(p2.y)
-            dl.append(p1.x)
+            dl.append(p2.label)
         # TODO: optimize lookup with headpq
         delta_values = list(self.distanceVector.values())
         delta_keys = list(self.distanceVector.keys())
@@ -345,7 +351,7 @@ class point(vect):
         # TODO: CLUSTER GROUPs
         fig, ax = plt.subplots()
         for i in range(len(dx)):
-            ax.scatter(dx[i], dy[i])#, marker=marker_dict[dx[i]],color=colors_dict[dy[i]])
+            ax.scatter(dx[i], dy[i], marker=marker_dict[ round(dx[i],0)],color=colors_dict[round(dy[i],0)])
         ax.scatter(p2.x,p2.y,c='red',marker="o",  s=100)
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
