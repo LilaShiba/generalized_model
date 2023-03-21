@@ -37,4 +37,4 @@ camera.release()
 out.release()
 
 # destroy all windows
-cv2.destroyAllWindows(
+cv2.destroyAllWindows()
