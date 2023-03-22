@@ -1,5 +1,13 @@
 import subprocess
 # update and upgrade os
+# Enable the universe repository
+subprocess.call(['sudo', 'add-apt-repository', 'universe'])
+
+# Update the package list
+subprocess.call(['sudo', 'apt-get', 'update'])
+
+# Install pip
+subprocess.call(['sudo', 'apt-get', 'install', '-y', 'python-pip'])
 subprocess.call(['sudo', 'apt-get', 'update', '-y'])
 subprocess.call(['sudo', 'apt', 'install', '-y', 'python-pip'])
 subprocess.call(['sudo', 'apt-get', 'upgrade', '-y'])
