@@ -1,6 +1,7 @@
 import subprocess
 # update and upgrade os
 subprocess.call(['sudo', 'apt-get', 'update', '-y'])
+subprocess.call(['sudo', 'apt-get', 'install', '-y', 'python-pip'])
 subprocess.call(['sudo', 'apt-get', 'upgrade', '-y'])
 
 # Install the packages
