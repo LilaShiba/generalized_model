@@ -6,9 +6,9 @@ subprocess.call(['sudo', 'apt-get', 'upgrade', '-y'])
 # Install the packages
 subprocess.call(['sudo', 'apt-get', 'install', '-y', 'make', 'libssl-dev', 'libghc-zlib-dev', 'libcurl4-gnutls-dev', 'libexpat1-dev', 'gettext'])
 # AI packages
-subprocess.call(['sudo', 'apt-get', 'install', '-y', 'numpy', 'pandas', 'scipy'])
+subprocess.call(['sudo', 'pip', 'install', '-y', 'numpy', 'pandas', 'scipy'])
 # Install OpenCV
-subprocess.call(['sudo', 'apt-get', 'install', '-y', 'python-opencv'])
+subprocess.call(['sudo', 'pip', 'install', '-y', 'python-opencv'])
 # Install scikit-learn
 subprocess.call(['sudo', 'pip', 'install', 'scikit-learn'])
 # Install Visual Studio Code
