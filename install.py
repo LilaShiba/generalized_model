@@ -1,15 +1,15 @@
 import subprocess
+# update and upgrade os
 subprocess.call(['sudo', 'apt-get', 'update', '-y'])
 subprocess.call(['sudo', 'apt-get', 'upgrade', '-y'])
-# Install NumPy
-subprocess.call(['sudo', 'apt-get', 'install', '-y', 'python-numpy'])
-# Install Pandas
-subprocess.call(['sudo', 'apt-get', 'install', '-y', 'python-pandas'])
-# Install SciPy
-subprocess.call(['sudo', 'apt-get', 'install', '-y', 'python-scipy'])
+
+# Install the packages
+subprocess.call(['sudo', 'apt-get', 'install', '-y', 'make', 'libssl-dev', 'libghc-zlib-dev', 'libcurl4-gnutls-dev', 'libexpat1-dev', 'gettext'])
+# AI packages
+subprocess.call(['sudo', 'apt-get', 'install', '-y', 'python-numpy', 'python-pandas', 'python-scipy'])
 # Install OpenCV
 subprocess.call(['sudo', 'apt-get', 'install', '-y', 'python-opencv'])
-# Datasets from sklearn
-subprocess.call(['sudo', 'apt-get', 'install', '-y', 'sklearn.datasets'])
+# Install scikit-learn
+subprocess.call(['sudo', 'pip', 'install', 'scikit-learn'])
 # Install Visual Studio Code
 subprocess.call(['sudo', 'apt-get', 'install', '-y', 'code'])
