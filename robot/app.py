@@ -68,7 +68,7 @@ def sensor_data():
         GPIO.cleanup()
 
 #@app.route('/run_agent', methods=['POST'])
-@app.route('/run_agent')
+@app.route('/run_agent',methods=['POST'])
 def run_agent():
     script_output = subprocess.check_output(['python', 'scripts/test.py'])
     return render_template('result.html', output=script_output)
