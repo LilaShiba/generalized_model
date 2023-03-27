@@ -1,6 +1,7 @@
-from flask import Flask, render_template, Response
-import picamera
 import RPi.GPIO as GPIO
+from flask import Flask, render_template, Response
+import subprocess
+import picamera
 import io
 import time
 
@@ -65,6 +66,13 @@ def sensor_data():
     finally:
         # Clean up the GPIO pins
         GPIO.cleanup()
+
+#@app.route('/run_agent', methods=['POST'])
+@app.route('/run_agent')
+def run_agent():
+    script_output = subprocess.check_output(['python', 'script.py'])
+    return render_template('result.html', output=script_output)
+
 
     
 if __name__ == '__main__':

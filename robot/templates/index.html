@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RPi Camera & PIR Streaming</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        .video-container {
+            width: 100%;
+            height: 0;
+            position: relative;
+            padding-bottom: 20.25%;
+        }
+        .video-container iframe, .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Raspberry Pi Camera Streaming with PIR Sensor</h1>
+    <div class="video-container">
+        <img id="video-stream" src="{{ url_for('video_feed') }}" alt="Live Video Stream">
+    </div>
+    <p id="sensor-data"></p>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(function() {
+            setInterval(function() {
+                $.get('/sensor_data', function(data) {
+                    $('#sensor-data').text(data);
+                });
+            }, 100);
+        });
+    </script>
+    <form action="/run_agent" method="POST">
+        <input type="submit" value="Run Script">
+    </form>
+</body>
+</html>
+
