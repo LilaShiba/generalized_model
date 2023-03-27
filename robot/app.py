@@ -14,7 +14,6 @@ PIR_PIN = 26
 # Set up the GPIO pin
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR_PIN, GPIO.IN)
-camera = PiCamera()
 
 @app.route('/')
 def index():
@@ -31,19 +30,21 @@ def gen():
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
             
 def generate_frames():
-    while True:
-        stream = io.BytesIO()
-        camera.capture(stream, format='jpeg')
-        stream.seek(0)
-        yield stream.read()
-        time.sleep(0.1)
+    with picamera.PiCamera() as camera:
+        while True:
+            stream = io.BytesIO()
+            camera.capture(stream, format='jpeg')
+            stream.seek(0)
+            yield stream.read()
+            time.sleep(0.1)
 
 def get_frame(camera):
-    stream = io.BytesIO()
-    camera.capture(stream, format='jpeg', use_video_port=True)
-    frame = stream.getvalue()
-    stream.seek(0)
-    stream.truncate()
+    with picamera.PiCamera() as camera:
+        stream = io.BytesIO()
+        camera.capture(stream, format='jpeg', use_video_port=True)
+        frame = stream.getvalue()
+        stream.seek(0)
+        stream.truncate()
     return frame
 
 @app.route('/video_feed')
