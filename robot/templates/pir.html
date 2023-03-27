@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Raspberry Pi PIR Sensor Stream</title>
+    <script>
+        var eventSource = new EventSource('/pir_data');
+        eventSource.onmessage = function(event) {
+            var pirState = event.data;
+            document.getElementById('pir-state').innerHTML = pirState;
+        };
+    </script>
+</head>
+<body>
+    <h1>Raspberry Pi PIR Sensor Stream</h1>
+    <p>PIR sensor state: <span id="pir-state"></span></p>
+</body>
+</html>
