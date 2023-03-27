@@ -509,3 +509,8 @@ class LogisticR:
 
         self.y_pred = y_pred
         return np.round(y_pred)
+
+
+
+
+
