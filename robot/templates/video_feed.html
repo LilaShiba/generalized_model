@@ -2,9 +2,6 @@
 <html>
 <head>
     <title>Raspberry Pi Camera Stream</title>
-</head>
-<body>
-    <h1>Raspberry Pi Camera Stream</h1>
     <script>
         var eventSource = new EventSource('/pir_data');
         eventSource.onmessage = function(event) {
@@ -14,8 +11,9 @@
     </script>
 </head>
 <body>
-    <p color="white">PIR sensor state: <span id="pir-state"></span></p>
-</body>
+    <h1>RPi 0 Stream</h1>
+
+    <h3>PIR sensor state: <span id="pir-state"></span></h3>
     <img src="{{ url_for('video_feed') }}" width="640" height="480">
     <script>
         function captureImage() {
