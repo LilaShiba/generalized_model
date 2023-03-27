@@ -27,7 +27,7 @@ def gen():
             frame = get_frame(camera)
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            
+                   
 def generate_frames():
     with picamera.PiCamera() as camera:
         while True:
@@ -47,9 +47,7 @@ def get_frame(camera):
 
 @app.route('/video_feed')
 def video_feed():
-    #return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
+    return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/sensor_data')
 def sensor_data():
