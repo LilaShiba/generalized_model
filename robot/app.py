@@ -70,7 +70,7 @@ def sensor_data():
 #@app.route('/run_agent', methods=['POST'])
 @app.route('/run_agent')
 def run_agent():
-    script_output = subprocess.check_output(['python', 'script.py'])
+    script_output = subprocess.check_output(['python', 'scripts/test.py'])
     return render_template('result.html', output=script_output)
 
 
