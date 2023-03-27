@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Raspberry Pi Camera Stream</title>
+    <title>Borker</title>
+</head>
+<body>
+    <h1>RPi 0 Stream</h1>
     <script>
         var eventSource = new EventSource('/pir_data');
         eventSource.onmessage = function(event) {
@@ -9,11 +12,8 @@
             document.getElementById('pir-state').innerHTML = pirState;
         };
     </script>
-</head>
-<body>
-    <h1>RPi 0 Stream</h1>
-
     <h3>PIR sensor state: <span id="pir-state"></span></h3>
+    <br>
     <img src="{{ url_for('video_feed') }}" width="640" height="480">
     <script>
         function captureImage() {
