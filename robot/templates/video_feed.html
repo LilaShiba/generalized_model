@@ -6,13 +6,6 @@
 <body>
     <h1>Raspberry Pi Camera Stream</h1>
     <img src="{{ url_for('video_feed') }}" width="640" height="480">
-</body>
-</html>
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Raspberry Pi Camera Stream</title>
     <script>
         function captureImage() {
             var canvas = document.createElement('canvas');
@@ -27,6 +20,7 @@
             xhr.send('imageData=' + encodeURIComponent(imageData));
         }
     </script>
-</head>
-<body>
-    <h1>R
+</body>
+</html>
+
+
