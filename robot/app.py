@@ -2,6 +2,7 @@ import RPi.GPIO as GPIO
 from flask import Flask, render_template, Response
 import subprocess
 import picamera
+from picamera import PiCamera
 import io
 import time
 
@@ -13,6 +14,7 @@ PIR_PIN = 26
 # Set up the GPIO pin
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR_PIN, GPIO.IN)
+camera = PiCamera()
 
 @app.route('/')
 def index():
@@ -27,6 +29,14 @@ def gen():
             frame = get_frame(camera)
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            
+def generate_frames():
+    while True:
+        stream = io.BytesIO()
+        camera.capture(stream, format='jpeg')
+        stream.seek(0)
+        yield stream.read()
+        time.sleep(0.1)
 
 def get_frame(camera):
     stream = io.BytesIO()
@@ -38,7 +48,8 @@ def get_frame(camera):
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    #return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/sensor_data')
 def sensor_data():
@@ -67,7 +78,7 @@ def sensor_data():
         # Clean up the GPIO pins
         GPIO.cleanup()
 
-#@app.route('/run_agent', methods=['POST'])
+
 @app.route('/run_agent',methods=['POST'])
 def run_agent():
     script_output = subprocess.check_output(['python', 'scripts/test.py'])
