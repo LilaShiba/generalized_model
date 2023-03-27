@@ -2,7 +2,6 @@ import RPi.GPIO as GPIO
 from flask import Flask, render_template, Response
 import subprocess
 import picamera
-from picamera import PiCamera
 import io
 import time
 
@@ -39,18 +38,18 @@ def generate_frames():
             time.sleep(0.1)
 
 def get_frame(camera):
-    with picamera.PiCamera() as camera:
-        stream = io.BytesIO()
-        camera.capture(stream, format='jpeg', use_video_port=True)
-        frame = stream.getvalue()
-        stream.seek(0)
-        stream.truncate()
+    stream = io.BytesIO()
+    camera.capture(stream, format='jpeg', use_video_port=True)
+    frame = stream.getvalue()
+    stream.seek(0)
+    stream.truncate()
     return frame
 
 @app.route('/video_feed')
 def video_feed():
     #return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
 
 @app.route('/sensor_data')
 def sensor_data():
@@ -78,7 +77,6 @@ def sensor_data():
     finally:
         # Clean up the GPIO pins
         GPIO.cleanup()
-
 
 @app.route('/run_agent',methods=['POST'])
 def run_agent():
