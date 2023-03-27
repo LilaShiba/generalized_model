@@ -18,34 +18,9 @@ GPIO.setup(PIR_PIN, GPIO.IN)
 def index():
     return render_template('index.html')
 
-def gen():
-    with picamera.PiCamera() as camera:
-        camera.resolution = (640, 480)
-        camera.framerate = 30
-        camera.start_preview()
-        while True:
-            frame = get_frame(camera)
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-def generate_pir_data():
-    while True:
-        pir_state = GPIO.input(PIR_PIN)
-        yield f"data: {pir_state}\n\n"
-        time.sleep(0.1)
-        
 @app.route('/pir_data')
 def pir_data():
     return Response(generate_pir_data(), mimetype='text/event-stream')
-
-def generate_frames():
-    with picamera.PiCamera() as camera:
-        while True:
-            stream = io.BytesIO()
-            camera.capture(stream, format='jpeg')
-            stream.seek(0)
-            yield stream.read()
-            time.sleep(0.1)
 
 def get_frame(camera):
     stream = io.BytesIO()
@@ -58,7 +33,7 @@ def get_frame(camera):
 @app.route('/video_feed')
 def video_feed():
     
-    return Response(gen(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(gen() , mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/sensor_data')
 def sensor_data():
@@ -75,8 +50,7 @@ def sensor_data():
             # Print the sensor value
             if pir_value:
                 print("Motion detected!")
-            else:
-                print("No motion")
+            
 
             # Wait for a short time before reading the sensor again
             time.sleep(0.5)
@@ -92,6 +66,22 @@ def run_agent():
     script_output = subprocess.check_output(['python', 'scripts/test.py'])
     return render_template('result.html', output=script_output)
 
+# Helpers
+def gen():
+    with picamera.PiCamera() as camera:
+        camera.resolution = (640, 480)
+        camera.framerate = 30
+        camera.start_preview()
+        while True:
+            frame = get_frame(camera)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+def generate_pir_data():
+    while True:
+        pir_state = GPIO.input(PIR_PIN)
+        yield f"data: {pir_state}\n\n"
+        time.sleep(0.1)
 
     
 if __name__ == '__main__':
