@@ -2,6 +2,9 @@
 <html>
 <head>
     <title>RPi Camera & PIR Streaming</title>
+    <form action="/run_agent" method="POST">
+        <input type="submit" value="Run Script">
+    </form>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         .video-container {
@@ -35,9 +38,6 @@
             }, 100);
         });
     </script>
-    <form action="/run_agent" method="POST">
-        <input type="submit" value="Run Script">
-    </form>
 </body>
 </html>
 
