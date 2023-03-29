@@ -17,4 +17,5 @@ Using G-Tech's OMSCS courses to help with the following tasks:
 | Ubiquitous Computing| What Does My Dog Want     | AI must learn to Love
 
 
-
+### Goal
+The Generalized model will be used with a RPi Flask server, enabling a mobile robot to form assumptions, beliefs, and feelings towards an individual. You may find the robot server template under the Robot folder. Waiting for LIDAR sensor. 
