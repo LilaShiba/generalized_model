@@ -311,6 +311,22 @@ class point(vect):
         plt.show()
         return y_delta              
 
+    def simple_knn(self,target=False,knnSize=5):
+        # preprocess
+        self.knn_init()
+        self.distanceVector = collections.defaultdict()
+        cord_vector = list(self.graph.values())
+        x_y = [(p.x,p.y) for p in self.nodeList]
+        x,y = zip(*x_y)
+        fig, ax = plt.subplots()
+
+        ax.scatter(x, y, s = 10)
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        fig.set_size_inches(20, 20)
+        plt.show()
+       
+            
     def knn_predict(self,target,norm=False,knnSize=5):
         '''
             vector 1D Node array
@@ -374,7 +390,7 @@ class point(vect):
         x,y = self.x, self.y
         nodeList = [] 
         adjList = collections.defaultdict()
-        for idx in range(self.n):
+        for idx in range(self.n - 1):
             dx = self.x[idx]
             dy = self.y[idx]
             delta = node(   dx, 
